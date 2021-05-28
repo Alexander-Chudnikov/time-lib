@@ -1,6 +1,9 @@
 #ifndef lab_h
 #define lab_h
 
+#include <iostream> 
+#include <stdint.h> 
+
 class Time
 {
 private:
@@ -24,7 +27,7 @@ public:
     uint64_t getUnix64Time() const;
     uint64_t getUnixTime()   const;
     uint64_t getFileTime()   const;
-    uint64_t getFull()       const;
+    uint64_t * getFull()     const;
     uint64_t getYear()       const;
     int      getMonth()      const;
     int      getDay()        const;
@@ -39,20 +42,17 @@ public:
 
     friend std::ostream& operator<< (std::ostream &out, const Time& right);
     friend std::istream& operator>> (std::istream &in, Time& right);
-
-    friend Time operator +(const Time& left, const Time& right);
-    friend Time operator -(const Time& left, const Time& right);
-    friend Time& operator +=(const Time& left, const Time& right);
-    friend Time& operator -=(const Time& left, const Time& right);
-
-    friend bool operator ==(const Time& left, const Time& right);
-    friend bool operator <=(const Time& left, const Time& right);
-    friend bool operator >=(const Time& left, const Time& right);
-    friend bool operator !=(const Time& left, const Time& right);
-    friend bool operator <(const Time& left, const Time& right);
-    friend bool operator >(const Time& left, const Time& right);
-
 };
+
+Time operator +(const Time& left, const Time& right);
+Time operator -(const Time& left, const Time& right);
+
+bool operator ==(const Time& left, const Time& right);
+bool operator <=(const Time& left, const Time& right);
+bool operator >=(const Time& left, const Time& right);
+bool operator !=(const Time& left, const Time& right);
+bool operator <(const Time& left, const Time& right);
+bool operator >(const Time& left, const Time& right);
 
 #endif 
 
