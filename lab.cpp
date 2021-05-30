@@ -37,13 +37,14 @@ void Time::
         return;
     }
 void Time::
-    setFull(unsigned int day = 0, unsigned int month = 0, uint64_t year = 0, unsigned int hour = 0, unsigned int minute = 0, unsigned int second = 0)
+    setFull(unsigned int day = 1, unsigned int month = 1, uint64_t year = 0, unsigned int hour = 0, unsigned int minute = 0, unsigned int second = 0)
     {
-        if ((year >= 0 && year < (UNIX_TIME_64_MAX_YEAR + 1)) && (month >= 0 && month <= 12) && (day >= 0 && day <= 31) && (hour >= 0 && hour <= 24) && (minute >= 0 && minute <= 60) && (second >= 0 && second <= 60))
+        if ((year >= 0 && year < (UNIX_TIME_64_MAX_YEAR + 1)) && (month > 0 && month <= 12) && (day > 0 && day <= 31) && (hour >= 0 && hour <= 24) && (minute >= 0 && minute <= 60) && (second >= 0 && second <= 60))
         {
             if ((year == UNIX_TIME_64_MAX_YEAR) && (month > 10) && (day > 8) && (hour > 7) && (second > 15) && (minute > 0))
             {
                 std::cerr << "Date is out of range, date must be smaller than 584554049253-10-8T07:00:15+00:00" << std::endl;
+                this->unixtime = 0;
                 return;
             }
             else
@@ -51,68 +52,134 @@ void Time::
                 bool leap = 0;
                 if (year % 4 == 0)
                 {
-                    if (year % 100 != 0)
+                    if (year % 100 == 0)
                     {
-                        leap = 1;
-                    }
-                    if (year % 400 == 0)
-                    {
-                        leap = 1;
-                    }
-                }
-                if (((month < 8 && month % 2 != 0) || (month % 2 == 0)) && day > 28) 
-                    {
-                        if (day > 31)
+                        leap = 0;
+                        if (year % 400 == 0)
                         {
-                            std::cerr << "The month you entered: " << month << " doesn't have " << day << " days in it." << std::endl;
-                            return;
+                            leap = 1;
                         }
                     }
-                    else if (month == 2)
+                    
+                }
+                if (month <= 12){
+                    if (month == 2)
                     {
-                        if (leap && day > 28)
+                        if (leap)
                         {
-                            std::cerr << "The month you entered: " << month << " doesn't have " << day << " days in it." << std::endl;
-                            return;
+                            if (day > 29)
+                            {
+                                std::cerr << "The month you entered: " << month << " doesn't have " << day << " days in it." << std::endl;
+                                this->unixtime = 0;
+                                return; 
+                            }
+                        }
+                        else 
+                        {
+                            if (day > 28)
+                            {
+                                std::cerr << "The month you entered: " << month << " doesn't have " << day << " days in it." << std::endl;
+                                this->unixtime = 0;
+                                return; 
+                            }
+                        }
+                    }
+                    else if (month < 8)
+                    {
+                        if (month % 2 != 0)
+                        {
+                            if (day > 31)
+                            {
+                                std::cerr << "The month you entered: " << month << " doesn't have " << day << " days in it." << std::endl;
+                                this->unixtime = 0;
+                                return;                        
+                            }
+                        }
+                        else 
+                        {
+                            if (day > 30)
+                            {
+                                std::cerr << "The month you entered: " << month << " doesn't have " << day << " days in it." << std::endl;
+                                this->unixtime = 0;
+                                return;                        
+                            }
                         }
                     }
                     else 
                     {
-                        if (day > 30)
+                        if (month % 2 == 0)
                         {
-                            std::cerr << "The month you entered: " << month << " doesn't have " << day << " days in it." << std::endl;
-                            return;
+                            if (day > 31)
+                            {
+                                std::cerr << "The month you entered: " << month << " doesn't have " << day << " days in it." << std::endl;
+                                this->unixtime = 0;
+                                return;                        
+                            }
+                        }
+                        else 
+                        {
+                            if (day > 30)
+                            {
+                                std::cerr << "The month you entered: " << month << " doesn't have " << day << " days in it." << std::endl;
+                                this->unixtime = 0;
+                                return;                        
+                            }
                         }
                     }
+                }
+                else 
+                {
+                    std::cerr << "The month you entered: " << month << " doesn't exist " << std::endl;
+                    this->unixtime = 0;
+                    return;   
+                }
 
-                this->leap_years = (year / 4) - (year / 100) + (year / 400);
-                this->unixtime = ((this->leap_years * (UNIX_TIME_YEAR + UNIX_TIME_DAY)) + ((year - this->leap_years) * UNIX_TIME_YEAR));
+                uint64_t leap_years = (year / 4) - (year / 100) + (year / 400);
+                this->unixtime = ((leap_years * (UNIX_TIME_YEAR + UNIX_TIME_DAY)) + ((year - leap_years) * UNIX_TIME_YEAR));
 
                 for (int loop = (month - 1); loop > 0; --loop)
                 {
-                    if ((loop < 8 && loop % 2 != 0) || (loop % 2 == 0)) 
+                    if (loop == 2)
                     {
-                        this->unixtime += UNIX_TIME_MONTH_31;
-                    }
-                    else if (loop == 2)
-                    {
-                        this->unixtime += UNIX_TIME_MONTH_28;
                         if (leap)
                         {
-                            this->unixtime += UNIX_TIME_DAY;
+                            this->unixtime += UNIX_TIME_MONTH_28 + UNIX_TIME_DAY;
+                        }
+                        else 
+                        {
+                            this->unixtime += UNIX_TIME_MONTH_28;
+                        }
+                    }
+                    else if (loop < 8)
+                    {
+                        if (loop % 2 != 0)
+                        {
+                            this->unixtime += UNIX_TIME_MONTH_31;
+                        }
+                        else 
+                        {
+                            this->unixtime += UNIX_TIME_MONTH_30;
                         }
                     }
                     else 
                     {
-                        this->unixtime += UNIX_TIME_MONTH_30;
+                        if (loop % 2 == 0)
+                        {
+                            this->unixtime += UNIX_TIME_MONTH_31;
+                        }
+                        else 
+                        {
+                            this->unixtime += UNIX_TIME_MONTH_30;
+                        }
                     }
                 }
-
+                --day;
                 this->unixtime += (second + (minute * UNIX_TIME_MINUTE) + (hour * UNIX_TIME_HOUR) + (day * UNIX_TIME_DAY));
                 return;
             }
         }
-        std::cerr << "Date is out of range, date must be smaller than 584554049253-10-8T07:00:15+00:00" << std::endl;
+        std::cerr << "Date is out of range, you have entered unexisting date" << std::endl;
+        this->unixtime = 0;
     }
 void Time::
     setDate(unsigned int day, unsigned int month, uint64_t year)
@@ -195,44 +262,56 @@ uint64_t * Time::
     getFull() const
     {
         static uint64_t time_arr[6];
-        time_arr[0] = (((this->unixtime - (this->leap_years * (UNIX_TIME_YEAR + UNIX_TIME_DAY))) / (UNIX_TIME_YEAR)) + this->leap_years);
-        uint64_t seconds = (((this->unixtime - (this->leap_years * (UNIX_TIME_YEAR + UNIX_TIME_DAY))) % (UNIX_TIME_YEAR)));
+        uint64_t seconds = this->unixtime;
         bool leap = 0;
         int loop = 0;
-        int month = 0; 
-        int day = 0;
+        int month = 1; 
+        int day = 1;
         int hour = 0;
         int minutes = 0;
 
         if (seconds % 4 == 0)
         {
-            if (seconds % 100 != 0)
+            if (seconds % 100 == 0)
             {
-                leap = 1;
+                leap = 0;
+                if (seconds % 400 == 0)
+                {
+                   leap = 1;
+                }
             }
-            if (seconds % 400 == 0)
-            {
-               leap = 1;
-            }
+            
         }
-        
+
+        uint64_t pre_years = this->unixtime / 365.251 / UNIX_TIME_DAY;
+
+        uint64_t leap_years = (pre_years / 4) - (pre_years / 100) + (pre_years / 400); 
+
+        uint64_t true_year = (((this->unixtime - (leap_years * (UNIX_TIME_YEAR + UNIX_TIME_DAY))) / (UNIX_TIME_YEAR)) + leap_years);
+
+        uint64_t leap_years_pre = (true_year / 4) - (true_year / 100) + (true_year / 400);
+
+        uint64_t unixtime_pre = ((leap_years_pre * (UNIX_TIME_YEAR + UNIX_TIME_DAY)) + ((true_year - leap_years_pre) * UNIX_TIME_YEAR));
+
+        while (unixtime_pre > this->unixtime)
+        {
+            true_year-=1;
+            leap_years_pre = (true_year / 4) - (true_year / 100) + (true_year / 400);
+            unixtime_pre = ((leap_years_pre * (UNIX_TIME_YEAR + UNIX_TIME_DAY)) + ((true_year - leap_years_pre) * UNIX_TIME_YEAR));
+        }
+
+        time_arr[0] = true_year;
+        leap_years_pre = (true_year / 4) - (true_year / 100) + (true_year / 400);
+        seconds -= ((leap_years_pre * (UNIX_TIME_YEAR + UNIX_TIME_DAY)) + ((true_year - leap_years_pre) * UNIX_TIME_YEAR));
+
         while (loop <= 12)
         {
             ++loop;
-            if ((loop < 8 && loop % 2 != 0) || (loop % 2 == 0)) 
-            {
-                if (seconds <= UNIX_TIME_MONTH_31)
-                {
-                    month = loop;
-                    break;
-                }
-                seconds -= UNIX_TIME_MONTH_31;
-            }
-            else if (loop == 2)
+            if (loop == 2)
             {
                 if (leap)
                 {
-                    if (seconds <= (UNIX_TIME_MONTH_28 + UNIX_TIME_DAY))
+                    if(seconds < (UNIX_TIME_MONTH_28 + UNIX_TIME_DAY))
                     {
                         month = loop;
                         break;
@@ -241,7 +320,7 @@ uint64_t * Time::
                 }
                 else 
                 {
-                    if (seconds <= UNIX_TIME_MONTH_28)
+                    if(seconds < UNIX_TIME_MONTH_28)
                     {
                         month = loop;
                         break;
@@ -249,16 +328,51 @@ uint64_t * Time::
                     seconds -= UNIX_TIME_MONTH_28;
                 }
             }
-            else 
+            else if (loop < 8)
             {
-                if (seconds <= UNIX_TIME_MONTH_30)
+                if (loop % 2 != 0)
                 {
-                    month = loop;
-                    break;
+                    if(seconds < UNIX_TIME_MONTH_31)
+                    {
+                        month = loop;
+                        break;
+                    }
+                    seconds -= UNIX_TIME_MONTH_31;
                 }
-                seconds -= UNIX_TIME_MONTH_30;
+                else 
+                {
+                    if(seconds < UNIX_TIME_MONTH_30)
+                    {
+                        month = loop;
+                        break;
+                    }
+                    seconds -= UNIX_TIME_MONTH_30;
+                }
             }
+            else
+            {
+                if (loop % 2 == 0)
+                {
+                    if(seconds < UNIX_TIME_MONTH_31)
+                    {
+                        month = loop;
+                        break;
+                    }
+                    seconds -= UNIX_TIME_MONTH_31;
+                }
+                else 
+                {
+                    if(seconds < UNIX_TIME_MONTH_30)
+                    {
+                        month = loop;
+                        break;
+                    }
+                    seconds -= UNIX_TIME_MONTH_30;
+                }
+            }
+            month = loop;
         }
+
         while (seconds >= UNIX_TIME_DAY)
         {
             ++day;
@@ -274,13 +388,11 @@ uint64_t * Time::
             ++minutes;
             seconds -= 60;
         }
-
         time_arr[1] = month;
         time_arr[2] = day;
         time_arr[3] = hour;
         time_arr[4] = minutes;
         time_arr[5] = seconds;
-        
         return time_arr;
     }
 uint64_t Time::
@@ -421,7 +533,6 @@ Time::
     Time(const Time &time)
     {
         this->unixtime = time.unixtime;
-        this->leap_years = time.leap_years;
     }
 
 int main()
