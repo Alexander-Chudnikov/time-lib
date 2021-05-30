@@ -12,7 +12,7 @@ private:
 public:
     
     void setUnix64Time(uint64_t u64_time);
-    void setUnixTime(uint64_t u_time);
+    void setUnixTime(uint32_t u_time);
     void setFileTime(uint64_t filetime);
     void setFull(unsigned int day, unsigned int month, uint64_t year, unsigned int hour, unsigned int minute, unsigned int second);
     void setDate(unsigned int day, unsigned int month, uint64_t year);
@@ -36,7 +36,9 @@ public:
     int      getSecond()     const;
     
 	Time();
-    Time(uint64_t unixtime);
+    Time(uint32_t unixtime32);
+    Time(uint64_t unixtime64);
+    Time(unsigned int day, unsigned int month, uint64_t year, unsigned int hour, unsigned int minute, unsigned int second);
    ~Time();
     Time(const Time &time1);
 
@@ -55,5 +57,3 @@ bool operator <(const Time& left, const Time& right);
 bool operator >(const Time& left, const Time& right);
 
 #endif 
-
-// tar -cJvf cw-[n].txz Matrix.h Matrix.cpp
