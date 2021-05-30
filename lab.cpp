@@ -17,6 +17,7 @@
 #define UNIX_EPOCH              11644473600LL
 #define WINDOWS_MAX_TIME        9223149887999990000LL
 
+
 void Time::
     setUnix64Time(uint64_t u64_time)
     {
@@ -24,9 +25,9 @@ void Time::
         return;
     }
 void Time::
-    setUnixTime(uint64_t u_time)
+    setUnixTime(uint32_t u_time)
     {
-        this->setUnix64Time(u_time + UNIX_TIME_OFFSET);
+        this->setUnix64Time((uint64_t)(u_time + UNIX_TIME_OFFSET));
         return;
     }
 void Time::
@@ -193,7 +194,7 @@ uint64_t Time::
 uint64_t * Time:: 
     getFull() const
     {
-        uint64_t time_arr[6];
+        static uint64_t time_arr[6];
         time_arr[0] = (((this->unixtime - (this->leap_years * (UNIX_TIME_YEAR + UNIX_TIME_DAY))) / (UNIX_TIME_YEAR)) + this->leap_years);
         uint64_t seconds = (((this->unixtime - (this->leap_years * (UNIX_TIME_YEAR + UNIX_TIME_DAY))) % (UNIX_TIME_YEAR)));
         bool leap = 0;
@@ -279,7 +280,7 @@ uint64_t * Time::
         time_arr[3] = hour;
         time_arr[4] = minutes;
         time_arr[5] = seconds;
-
+        
         return time_arr;
     }
 uint64_t Time::
@@ -352,7 +353,7 @@ Time operator +(const Time& left, const Time& right)
     catch (...)
     {
         std::cerr << "UnixDate is out of range, UnixDate must be smaller than 18446744073709551615" << std::endl;
-        return 0;
+        return left.getUnix64Time();
     }
 }
 Time operator -(const Time& left, const Time& right) 
@@ -364,7 +365,7 @@ Time operator -(const Time& left, const Time& right)
     catch (...)
     {
         std::cerr << "UnixDate is out of range, UnixDate must be bigger than 0" << std::endl;
-        return 0;
+        return left.getUnix64Time();
     }
 }
 bool operator ==(const Time& left, const Time& right)
@@ -391,3 +392,45 @@ bool operator <(const Time& left, const Time& right)
 {
     return (left.getUnix64Time() < right.getUnix64Time());
 }
+Time::
+    Time()
+    {
+        this->unixtime = 0;
+    }
+Time::
+    Time(uint32_t unixtime32)
+    {
+        this->setUnixTime(unixtime32);
+    }
+Time::
+    Time(uint64_t unixtime64)
+    {
+        this->unixtime = unixtime64;
+    }
+Time::
+    Time(unsigned int day, unsigned int month, uint64_t year, unsigned int hour, unsigned int minute, unsigned int second)
+    {
+        this->setFull(day, month, year, hour, minute, second);
+    }
+Time::
+    ~Time()
+    {
+
+    }
+Time::
+    Time(const Time &time)
+    {
+        this->unixtime = time.unixtime;
+        this->leap_years = time.leap_years;
+    }
+
+int main()
+{
+    std::cout << "Some Tests:" << std::endl;
+    std::cout << "Input time: 2002-10-23 22:13:55" << std::endl;
+
+    Time time(23, 10, 2002, 22, 13, 55);
+    std::cout << time;
+}
+
+
